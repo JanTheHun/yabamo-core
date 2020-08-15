@@ -1,4 +1,4 @@
-import express from 'express'
+import * as express from 'express'
 import { EngineRoute, checkRoute } from './classes/EngineRoute'
 import { EngineConfig, checkConfig } from './classes/EngineConfig'
 
@@ -126,16 +126,16 @@ export class ServerInstance {
             console.log('configCheck:', configCheck)
             this._config = config
                         /*      setting keep-alive to false     */
-            this._app.use(function(req,res,next) {
+            this._app.use(function(req: any, res: any, next: any) {
                 res.setHeader('Connection', 'close')
                 next()
             })
 
-            this._app.get('/favicon.ico', (req, res) => {
+            this._app.get('/favicon.ico', (req: any, res: any) => {
                 res.sendFile(__dirname.concat('/favicon.ico'))
             })
                         /*      handling requests     */
-            this._app.use('/', (req,res) => {
+            this._app.use('/', (req: any,res: any) => {
     
                 console.log(`${req.method}->${req.path}`)
     
