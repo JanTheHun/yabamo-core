@@ -2,7 +2,8 @@ import express from 'express'
 import { EngineRoute, checkRoute } from './classes/EngineRoute'
 import { EngineConfig, checkConfig } from './classes/EngineConfig'
 
-export { EngineRoute, checkRoute } from './classes/EngineRoute'
+export { checkRoute } from './classes/EngineRoute'
+export { checkConfig } from './classes/EngineConfig'
 
 export class ServerInstance {
     _app: express.Application
