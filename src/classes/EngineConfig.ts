@@ -29,7 +29,7 @@ export function checkConfig(config: any): Promise<string> {
         config.routes.forEach((r: EngineRoute) => {
             checkRoute(r)
             .then(res => {
-                console.log(`checking "${r.method ? r.method : 'GET'}->${r.path}": ${res}`)
+                // console.log(`checking "${r.method ? r.method : 'GET'}->${r.path}": ${res}`)
             })
             .catch(err => {
                 reject(err)
