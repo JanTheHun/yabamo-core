@@ -5,7 +5,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {},
-  "keywords": ["typescript", "backend", "mockup"],
+  "keywords": [
+    "typescript",
+    "backend",
+    "mockup"
+  ],
   "author": "Janos Pomucz",
   "license": "ISC",
   "dependencies": {
