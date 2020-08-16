@@ -1,5 +1,5 @@
 import express from 'express'
-import { EngineRoute, checkRoute } from './classes/EngineRoute'
+import { EngineRoute } from './classes/EngineRoute'
 import { EngineConfig, checkConfig } from './classes/EngineConfig'
 
 export { checkRoute } from './classes/EngineRoute'
@@ -124,7 +124,6 @@ export class ServerInstance {
 
         try {
             configCheck = await checkConfig(config)
-            console.log('configCheck:', configCheck)
             this._config = config
                         /*      setting keep-alive to false     */
             this._app.use(function(req: any, res: any, next: any) {
@@ -137,8 +136,6 @@ export class ServerInstance {
             })
                         /*      handling requests     */
             this._app.use('/', (req: any,res: any) => {
-    
-                console.log(`${req.method}->${req.path}`)
     
                 let reqPath = req.path
                 let reqMethod = req.method
