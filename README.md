@@ -39,21 +39,35 @@ const config = {
     ]
 }
 
-// ..and use it with a callback or as a Promise
+// use the synchronous version if you want
 
-// callback
-server.start(config, (result, error) => {
+server.createSync(config)
+
+// ..or use in async way with callback
+
+server.create(config, (result, error) => {
     if (error) {
-        //...
+        // reason of error in 'error'
+    } else {
+        // ..
     }
 })
 
-// Promise
-server.start(config)
+// ..or as a Promise
+server.create(config)
     .then(result => {
-
+        // ..
     })
     .catch(error => {
-        
+        // reason of error in 'error'
+    })
+
+// finally, start the engine
+
+server.start()
+    .then(result => {
+        // ..
+    }).catch(error => {
+        // reason of error in 'error'
     })
 ```
