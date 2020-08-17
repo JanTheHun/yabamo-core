@@ -13,7 +13,6 @@ Core library for **Y**et **A**nother **Ba**ckend **Mo**ckup application.
 
 ```
 const yabamoCore = require('@jbp/yabamo-core')
-
 const server = new yabamoCore.ServerInstance()
 ```
 
@@ -21,13 +20,13 @@ const server = new yabamoCore.ServerInstance()
 
 ```
 import { ServerInstance } from ('@jbp/yabamo-core')
-
 const server: ServerInstance = new ServerInstance()
 ```
 
 ```
 // provide a config in JSON
 const config = {
+    engineName: "test_engine",
     port: 3000,
     routes: [
         {
@@ -36,7 +35,8 @@ const config = {
                 'default': 'yo'
             }
         }
-    ]
+    ],
+    fallback: "sorry..404!"
 }
 
 // use the synchronous version if you want
@@ -70,4 +70,22 @@ server.start()
     }).catch(error => {
         // reason of error in 'error'
     })
+
+
+// the most basic working example with async-await
+// create an async function so that you can use await inside
+
+async function main() {
+    try {
+        let creation = await server.create(config)
+        console.log(creation)
+        let starting = await server.start()
+        console.log(starting)
+    } catch (err) {
+        console.log('err:', err)
+    }
+}
+
+// ..and run it
+main()
 ```
