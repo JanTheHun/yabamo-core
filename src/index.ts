@@ -51,6 +51,15 @@ export class ServerInstance {
         }
     }
 
+    async startSync() {
+        try {
+            await this.start()
+            return true
+        } catch (err) {
+            return false
+        }
+    }
+
     stop(callback?: any) {
         let error: string | null = null
         let result: string | null = null

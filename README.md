@@ -41,16 +41,9 @@ const config = {
 ```
 ### Synchronous usage
 ```
-let configCheck = server.checkConfigSync(config)
-if (configCheck !== 'config looks good') {
-    console.log('error with config:', configCheck)
-    process.exit(-1)
-}
-let createResult = server.createSync(config)
-if (configChcreateResulteck !== 'config looks good') {
-    console.log('error with config:', configCheck)
-    process.exit(-1)
-}
+checkConfigSync(config)
+server.createSync(config)
+server.start()
 ```
 
 ### Asynchronous usage
