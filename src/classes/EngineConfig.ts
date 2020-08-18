@@ -37,30 +37,38 @@ export function checkConfig(config: any): Promise<string> {
     })
 }
 
-export function checkConfigSync(config: any) {
+export function checkConfigSync(config: any): { result: string | null, error: string | null} {
+    let error: string | null = null
+    let result: string | null = null
     if (!config) {
-        return('no config')
+        error = 'no config'
     }
     if (!config.engineName) {
-        return('no engineName')
+        error = 'no engineName'
     }
     if (!config.port) {
-        return('no port number')
+        error = 'no port number'
     }
     if (isNaN(config.port)) {
-        return('port must be a number')
+        error = 'port must be a number'
     }
     if (!config.routes) {
-        return('must provide some routes')
+        error = 'must provide some routes'
     }
     if (Object.prototype.toString.call(config.routes) !== '[object Array]') {
-        return('routes must be Array')
+        error = 'routes must be Array'
     }
     config.routes.forEach((r: EngineRoute) => {
         let routeResult = checkRouteSync(r)
-        if (routeResult === 'route checks out') {
-            return routeResult
+        if (routeResult !== 'route checks out') {
+            error = routeResult
         }
     })
-    return('config looks good')
+    if (error) {
+        result = null
+        
+    } else {
+        result = 'config looks good'
+    }
+    return({ error, result })
 }

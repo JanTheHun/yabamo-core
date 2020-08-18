@@ -22,7 +22,7 @@ const server = new yabamoCore.ServerInstance()
 import { ServerInstance } from ('@jbp/yabamo-core')
 const server: ServerInstance = new ServerInstance()
 ```
-
+## Basic examples
 ```
 // provide a config in JSON
 const config = {
@@ -38,13 +38,23 @@ const config = {
     ],
     fallback: "sorry..404!"
 }
+```
+### Synchronous usage
+```
+let configCheck = server.checkConfigSync(config)
+if (configCheck !== 'config looks good') {
+    console.log('error with config:', configCheck)
+    process.exit(-1)
+}
+let createResult = server.createSync(config)
+if (configChcreateResulteck !== 'config looks good') {
+    console.log('error with config:', configCheck)
+    process.exit(-1)
+}
+```
 
-// use the synchronous version if you want
-
-server.createSync(config)
-
-// ..or use in async way with callback
-
+### Asynchronous usage
+```
 server.create(config, (result, error) => {
     if (error) {
         // reason of error in 'error'
@@ -70,9 +80,10 @@ server.start()
     }).catch(error => {
         // reason of error in 'error'
     })
+```
 
-
-// the most basic working example with async-await
+### Basic working example with async-await
+```
 // create an async function so that you can use await inside
 
 async function main() {

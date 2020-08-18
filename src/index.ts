@@ -2,8 +2,8 @@ import express from 'express'
 import { EngineRoute } from './classes/EngineRoute'
 import { EngineConfig, checkConfig, checkConfigSync } from './classes/EngineConfig'
 
-export { checkRoute } from './classes/EngineRoute'
-export { checkConfig } from './classes/EngineConfig'
+export { checkRoute, checkRouteSync } from './classes/EngineRoute'
+export { checkConfig, checkConfigSync } from './classes/EngineConfig'
 
 export class ServerInstance {
     _app: express.Application
@@ -116,12 +116,12 @@ export class ServerInstance {
         }
     }
 
-    createSync(config: EngineConfig) {
+    createSync(config: EngineConfig): { result: string | null, error: string | null } {
         let result: any = null
         let error: any = null
-        let configCheck: string = checkConfigSync(config)
-        if (configCheck !== 'config looks good') {
-            error = configCheck
+        let configCheck: { result: string | null, error: string | null } = checkConfigSync(config)
+        if (configCheck.error) {
+            error = configCheck.error
         } else {
             this._config = config
             this._app = this.createEngine()
