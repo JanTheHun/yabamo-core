@@ -43,7 +43,7 @@ const config = {
 ```
 checkConfigSync(config)
 server.createSync(config)
-server.start()
+server.startSync()
 ```
 
 ### Asynchronous usage

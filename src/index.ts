@@ -53,7 +53,9 @@ export class ServerInstance {
 
     async startSync() {
         try {
+            console.log('start sync')
             await this.start()
+            console.log('sync started')
             return true
         } catch (err) {
             return false
