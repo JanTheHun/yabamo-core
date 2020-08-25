@@ -39,6 +39,10 @@ const config = {
     fallback: "sorry..404!"
 }
 
+// check the config if you want
+
+server.checkConfig(config)
+
 server.create(config, (result, error) => {
     if (error) {
         // reason of error in 'error'

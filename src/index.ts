@@ -12,9 +12,51 @@ export class ServerInstance {
         this._app = express()
     }
 
-    checkConfig = (config: EngineConfig) => checkConfig(config)
+    // checkConfig = (config: EngineConfig) => checkConfig(config)
 
-    checkRoute = (route: EngineRoute) => checkRoute(route)
+    // checkRoute = (route: EngineRoute) => checkRoute(route)
+
+    async checkConfig(config: any, callback?: any) {
+        if (callback) {
+            try {
+                let check = await checkConfig(config)
+                callback(check, null)
+            } catch(err) {
+                callback(null, err)
+            }
+        } else {
+            return new Promise((resolve, reject) => {
+                checkConfig(config)
+                .then( res => {
+                    resolve(res)
+                })
+                .catch( err => {
+                    reject(err)
+                })
+            })
+        }
+    }
+
+    async checkRoute(route: any, callback?: any) {
+        if (callback) {
+            try {
+                let check = await checkRoute(route)
+                callback(check, null)
+            } catch(err) {
+                callback(null, err)
+            }
+        } else {
+            return new Promise((resolve, reject) => {
+                checkRoute(route)
+                .then( res => {
+                    resolve(res)
+                })
+                .catch( err => {
+                    reject(err)
+                })
+            })
+        }
+    }
 
     start(callback?: any) {
         if (callback) {
