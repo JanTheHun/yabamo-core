@@ -15,7 +15,7 @@ export class ServerInstance {
         this._app = express()
     }
 
-    checkConfig = () => checkConfig(this)
+    checkConfig = (config: any) => checkConfig(config)
 
     checkRoute = () => checkRoute(this)
 
