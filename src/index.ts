@@ -15,9 +15,9 @@ export class ServerInstance {
         this._app = express()
     }
 
-    checkConfig = () => checkConfig
+    checkConfig = () => checkConfig(this)
 
-    checkRoute = () => checkRoute
+    checkRoute = () => checkRoute(this)
 
     start(callback?: any) {
         if (callback) {
