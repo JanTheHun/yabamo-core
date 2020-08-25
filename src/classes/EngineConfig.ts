@@ -1,9 +1,9 @@
 import { EngineRoute, checkRoute } from './EngineRoute'
 export interface EngineConfig {
-    engineName: string
+    engineName?: string
     port: number,
     routes: any[],
-    fallback: any
+    fallback?: any
 }
 
 export function checkConfig(config: any): Promise<string> {
@@ -11,9 +11,9 @@ export function checkConfig(config: any): Promise<string> {
         if (!config) {
             reject('no config')
         }
-        if (!config.engineName) {
-            reject('no engineName')
-        }
+        // if (!config.engineName) {
+        //     reject('no engineName')
+        // }
         if (!config.port) {
             reject('no port number')
         }

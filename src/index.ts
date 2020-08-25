@@ -2,9 +2,6 @@ import express from 'express'
 import { EngineRoute, checkRoute } from './classes/EngineRoute'
 import { EngineConfig, checkConfig } from './classes/EngineConfig'
 
-// export { checkRoute } from './classes/EngineRoute'
-// export { checkConfig } from './classes/EngineConfig'
-
 export class ServerInstance {
     _app: express.Application
     _server: any
@@ -15,9 +12,9 @@ export class ServerInstance {
         this._app = express()
     }
 
-    checkConfig = (config: any) => checkConfig(config)
+    checkConfig = (config: EngineConfig) => checkConfig(config)
 
-    checkRoute = () => checkRoute(this)
+    checkRoute = (route: EngineRoute) => checkRoute(route)
 
     start(callback?: any) {
         if (callback) {
@@ -33,7 +30,7 @@ export class ServerInstance {
                 })
             } else {
                 this.running = false
-                callback(null, 'create it first..')
+                callback(null, 'create an engine first!')
             }
         } else {
             return new Promise((resolve, reject) => {
@@ -49,7 +46,7 @@ export class ServerInstance {
                     })
                 } else {
                     this.running = false
-                    reject('create it first..')
+                    reject('create an engine first!')
                 }
             })
         }
@@ -87,7 +84,7 @@ export class ServerInstance {
         let routeFound: any
 
         if (!this._config) {
-            error = `no engine created!`
+            error = `create an engine first!`
         } else if (this.running !== true) {
             error = `engine not running!`
         } else {
