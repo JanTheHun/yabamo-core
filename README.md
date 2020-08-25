@@ -38,16 +38,7 @@ const config = {
     ],
     fallback: "sorry..404!"
 }
-```
-### Synchronous usage
-```
-checkConfigSync(config)
-server.createSync(config)
-server.startSync()
-```
 
-### Asynchronous usage
-```
 server.create(config, (result, error) => {
     if (error) {
         // reason of error in 'error'
@@ -56,13 +47,13 @@ server.create(config, (result, error) => {
     }
 })
 
-// ..or as a Promise
+// ..or use it as a Promise
 server.create(config)
     .then(result => {
         // ..
     })
     .catch(error => {
-        // reason of error in 'error'
+        // reason of error
     })
 
 // finally, start the engine
@@ -71,7 +62,7 @@ server.start()
     .then(result => {
         // ..
     }).catch(error => {
-        // reason of error in 'error'
+        // reason of error
     })
 ```
 
