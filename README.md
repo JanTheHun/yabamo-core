@@ -1,7 +1,7 @@
 # yabamo-core
 
 Core library for **Y**et **A**nother **Ba**ckend **Mo**ckup application.
-
+If you need a simple CLI tool to spin up a fake backend in a minute, check out [@jbp/yabamo-cli](https://www.npmjs.com/package/@jbp/yabamo-cli)!
 
 ## Installation
 
