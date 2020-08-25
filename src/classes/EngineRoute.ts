@@ -7,7 +7,7 @@ export interface EngineRoute {
     debug?: boolean
     currentResponse?: string
     responses: {
-        [key: string]: Response
+        [key: string]: any
     }
 }
 
