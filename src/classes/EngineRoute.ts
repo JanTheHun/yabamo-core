@@ -13,6 +13,9 @@ export interface EngineRoute {
 
 export function checkRoute(rawRoute: any) {
     return new Promise((resolve, reject) => {
+        if (!rawRoute) {
+            reject('provide a route to check!')
+        }
         if (rawRoute.hasOwnProperty("path")) {
             if (Object.prototype.toString.call(rawRoute.path) !== "[object String]") {
                 reject(`wrong "path" format on Route: ${rawRoute}`)
