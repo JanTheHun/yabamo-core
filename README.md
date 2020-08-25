@@ -22,7 +22,7 @@ const server = new yabamoCore.ServerInstance()
 import { ServerInstance } from ('@jbp/yabamo-core')
 const server: ServerInstance = new ServerInstance()
 ```
-
+## Basic examples
 ```
 // provide a config in JSON
 const config = {
@@ -39,48 +39,70 @@ const config = {
     fallback: "sorry..404!"
 }
 
-// use the synchronous version if you want
-
-server.createSync(config)
-
-// ..or use in async way with callback
-
-server.create(config, (result, error) => {
+// check the config if you want
+server.checkConfig(config, (result, error) => {
     if (error) {
-        // reason of error in 'error'
+        console.log(error)  // should log "config looks good"
     } else {
-        // ..
+        console.log(result)
     }
 })
 
-// ..or as a Promise
-server.create(config)
-    .then(result => {
-        // ..
+/ ..or use Promises instead of callbacks
+server.checkConfig(config)
+    .then( result => {
+        console.log(result)
     })
-    .catch(error => {
-        // reason of error in 'error'
+    .catch( err => {
+        console.log(error)
+    })
+})
+
+// you can even check a single route
+server.checkRoute(config)
+    .then( result => {
+        console.log(result) // should log "route checks out"
+    })
+    .catch( err => {
+        console.log(error)
+    })
+})
+
+//create a server from config
+server.create(config)
+    .then( result => {
+        console.log(result) // should log "engine created"
+    })
+    .catch( err => {
+        console.log(error)
     })
 
 // finally, start the engine
-
 server.start()
-    .then(result => {
-        // ..
-    }).catch(error => {
-        // reason of error in 'error'
+    .then( result => {
+        console.log(result) // should log "running on port {...}"
     })
+    .catch( err => {
+        console.log(error)
+    })
+```
 
-
-// the most basic working example with async-await
+### Basic working example with async-await
+```
 // create an async function so that you can use await inside
 
 async function main() {
     try {
-        let creation = await server.create(config)
-        console.log(creation)
-        let starting = await server.start()
-        console.log(starting)
+
+        await server.create(config)
+        await server.start()
+
+        // ..or you can log confirm messages
+        //let creation = await server.create(config)
+        //console.log(creation)
+        //let starting = await server.start()
+        //console.log(starting)
+
     } catch (err) {
         console.log('err:', err)
     }
