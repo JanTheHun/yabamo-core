@@ -12,10 +12,6 @@ export class ServerInstance {
         this._app = express()
     }
 
-    // checkConfig = (config: EngineConfig) => checkConfig(config)
-
-    // checkRoute = (route: EngineRoute) => checkRoute(route)
-
     async checkConfig(config: any, callback?: any) {
         if (callback) {
             try {
