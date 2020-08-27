@@ -137,7 +137,7 @@ There is a timeout for the delayed responses, you can set it in the config with 
     ]
 }
 ```
-This configuration sets the timeout to 10 seconds and creates to responses, ```default``` and ```other```.
+This configuration sets the timeout to 10 seconds and creates two responses, ```default``` and ```other```.
 If you set up your engine the following way:
 ```
 main()
