@@ -286,7 +286,7 @@ export class ServerInstance extends EventEmitter {
                 this.emit('debug', {
                     debugStarted: true,
                     id: newResponseId,
-                    responses: Object.keys(this.debuggedResponses).length
+                    responses: Object.keys(this.debuggedResponses)
                 })
                     
                 this.clearDebuggedResponse(newResponseId)
