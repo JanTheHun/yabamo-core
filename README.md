@@ -111,3 +111,80 @@ async function main() {
 // ..and run it
 main()
 ```
+
+# Debug mode
+
+If a route has a ```debug:true``` property, the engine pauses when a request arrives. This gives you the opportunity to decide which response to send on-the-fly. The engine emits a ```debug``` event along with an ```id``` property which you can set a listener on with ```.on('debug', ...)```. You can use your engine's ```.emit()``` method to response with a ```go``` event along with the appropriate ```id``` and optionally with the name of a response. If you ommit the response name the engine will use the saved response it would use otherwise but here you have the opportunity to decide which response to send.
+
+There is a timeout for the delayed responses, you can set it in the config with ```debugTimeout``` (in milliseconds) or it will default to 30 seconds.
+
+## Basic example
+
+```
+{
+    engineName: "test_engine",
+    port: 3000,
+    debugTimeout: 10000,
+    routes: [
+        {
+            path: '/',
+            debug: true,
+            responses: {
+                'default': 'yo',
+                'other': 'yo!!!'
+            }
+        }
+    ]
+}
+```
+This configuration sets the timeout to 10 seconds and creates two responses, ```default``` and ```other```.
+If you set up your engine the following way:
+```
+main()
+
+async function main() {
+    try {
+        await server.create(config)
+        await server.start()
+        server.on('debug', (data) => {
+            // setTimeout merely for demonstrative purposes
+            setTimeout(() => {
+                server.emit('go', data.id)
+            }, 1000)
+        })
+    } catch (err) {
+        console.log('err:', err)
+    }
+}
+```
+
+
+ If you make a ```GET``` request to ```http://localhost:3000```, the engine will emit a ```debug``` event which in turn will trigger a ```go``` event emitted 1 seconds later with the id of the delayed response. With the config shown above this should result in a one second delayed ```yo``` response. But if you send the ```go``` event like this:
+
+```server.emit('go', data.id, 'other')```
+
+then you should get a slightly different result: ```yo!!!```
+
+### ```debug``` event
+
+The payload of ```debug``` event is the following:
+```
+{
+    id: '...',
+    responses: [...]
+}
+```
+where ```id``` is a unique id for the debugged request and ```responses``` is an array with the possible responses. Given the basic configuration above, the following:
+
+```
+server.on('debug', (data) => {
+    console.log(data)
+})
+```
+when beeing called, should print this:
+```
+{
+  id: ...,
+  responses: { default: 'yo', other: 'yo!!!' }
+}
+```

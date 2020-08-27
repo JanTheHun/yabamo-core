@@ -1,15 +1,25 @@
 import express from 'express'
+import { EventEmitter } from 'events'
+import { v4 as uuidv4 } from 'uuid'
 import { EngineRoute, checkRoute } from './classes/EngineRoute'
 import { EngineConfig, checkConfig } from './classes/EngineConfig'
 
-export class ServerInstance {
+export class ServerInstance extends EventEmitter {
     _app: express.Application
     _server: any
     _config!: EngineConfig
+    _debugTimeout: number
     running: boolean = false
+    debuggedResponses: { [key: string]: { res: any, response: any, responses: any }} = {}
+    timeoutTimers: { [key: string]: any} = {}
 
     constructor () {
+        super()
+        this._debugTimeout = 30000
         this._app = express()
+        this.on('go', (id: string, responseName?: string)=> {
+            this.proceedDebuggedResponse(id, responseName)
+        })
     }
 
     async checkConfig(config: any, callback?: any) {
@@ -158,10 +168,12 @@ export class ServerInstance {
     async create(config: EngineConfig, callback?: any) {
         let error: string | null = null
         let result: string | null = null
-
         try {
-            this._config = config
             await checkConfig(config)
+            if(config.debugTimeout) {
+                this._debugTimeout = config.debugTimeout
+            }
+            this._config = config
             this._app = this.createEngine()
             result = 'engine created'
         } catch(err) {
@@ -184,6 +196,7 @@ export class ServerInstance {
         }
     }
 
+
     private createEngine() {
         let newApp = express()
         let config = this._config
@@ -204,28 +217,86 @@ export class ServerInstance {
             let engineRoutes: EngineRoute[] = config.routes
             let responseFound: any = engineRoutes.find( r => { return (!r.method || r.method === reqMethod) && r.path === reqPath })
 
-            let currentResponse: any = null
+            let selectedResponse: any = null
 
             if (!responseFound || !responseFound.responses || Object.prototype.toString.call(responseFound.responses) !== '[object Object]' || Object.entries(responseFound.responses).length === 0) {
-                currentResponse = config.fallback
+                selectedResponse = config.fallback
             } else {
                 if (responseFound.currentResponse && responseFound.responses[responseFound.currentResponse]) {
-                    currentResponse = responseFound.responses[responseFound.currentResponse]
+                    selectedResponse = responseFound.responses[responseFound.currentResponse]
                 } else if (responseFound.responses['default']) {
-                    currentResponse = responseFound.responses['default']
+                    selectedResponse = responseFound.responses['default']
                 } else {
-                    currentResponse = Object.entries(responseFound.responses)[0][1]
+                    selectedResponse = Object.entries(responseFound.responses)[0][1]
                 }
             }
 
-            if (Object.prototype.toString.call(currentResponse) === '[object Object]' || Object.prototype.toString.call(currentResponse) === '[object Array]') {
-                res.json(currentResponse)
-            } else if (Object.prototype.toString.call(currentResponse) === '[object String]' || Object.prototype.toString.call(currentResponse) === '[object Number]') {
-                res.send(currentResponse.toString())
+            if (responseFound.debug) {
+                let newResponseId = uuidv4()
+                this.debuggedResponses[newResponseId] = {
+                    res: res,
+                    response: selectedResponse,
+                    responses: responseFound.responses
+                }
+                this.emit('debug', {
+                    id: newResponseId,
+                    responses: responseFound.responses
+                })  
+                this.clearDebuggedResponse(newResponseId)
             } else {
-                console.log('could not determine type of response! is it JSON, is it a string, a number..?')
+                this.sendResponse(res, selectedResponse)
             }
         })
         return newApp 
+    }
+
+    private sendResponse(res: any, response: any) {
+        if (Object.prototype.toString.call(response) === '[object Object]' || Object.prototype.toString.call(response) === '[object Array]') {
+            res.json(response)
+        } else if (Object.prototype.toString.call(response) === '[object String]' || Object.prototype.toString.call(response) === '[object Number]') {
+            res.send(response.toString())
+        } else {
+            console.log('could not determine type of response! is it JSON, is it a string, a number..?')
+        }
+    }
+
+    private proceedDebuggedResponse(id: string, responseName?: string | null, timeout?: boolean) {
+        if (this.debuggedResponses[id]) {
+            let { res, response, responses } = this.debuggedResponses[id]
+            delete this.debuggedResponses[id]
+            let responseDTO: any = {
+                id: id
+            }
+            if (timeout) {
+                responseDTO.timeout = true
+                responseDTO.timeoutDelay = this._debugTimeout
+            } else {
+                responseDTO.proceeding = true
+            }
+            if (responseName) {
+                response = responses[responseName]
+                responseDTO.responseName = responseName
+            }
+            this.clearDebugTimer(id)
+            this.sendResponse(res, response)
+            this.emit('debugStatus', responseDTO)
+        } else {
+            this.emit('debugStatus', {
+                responseNotFound: true,
+                id: id
+            })
+        }
+    }
+
+    private clearDebugTimer(responseId: string) {
+        if (this.timeoutTimers[responseId]) {
+            clearTimeout(this.timeoutTimers[responseId])
+        }
+    }
+
+    private clearDebuggedResponse(responseId: string) {
+        this.timeoutTimers[responseId] =  setTimeout(()=> {
+            this.proceedDebuggedResponse(responseId, null, true)
+        }, this._debugTimeout)
     }
 }
