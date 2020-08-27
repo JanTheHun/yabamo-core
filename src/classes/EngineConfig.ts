@@ -3,7 +3,8 @@ export interface EngineConfig {
     engineName?: string
     port: number,
     routes: any[],
-    fallback?: any
+    fallback?: any,
+    debugTimeout?: number
 }
 
 export function checkConfig(config: any): Promise<string> {

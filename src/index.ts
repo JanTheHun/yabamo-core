@@ -1,15 +1,24 @@
 import express from 'express'
+import { EventEmitter } from 'events'
+import { v4 as uuidv4 } from 'uuid'
 import { EngineRoute, checkRoute } from './classes/EngineRoute'
 import { EngineConfig, checkConfig } from './classes/EngineConfig'
 
-export class ServerInstance {
+export class ServerInstance extends EventEmitter {
     _app: express.Application
     _server: any
     _config!: EngineConfig
+    _debugTimeout: number
     running: boolean = false
+    debuggedResponses: { [key: string]: { res: any, response: any, responses: any }} = {}
 
     constructor () {
+        super()
+        this._debugTimeout = 3000
         this._app = express()
+        this.on('go', (id: string, responseName?: string)=> {
+            this.proceedDebuggedResponse(id, responseName)
+        })
     }
 
     async checkConfig(config: any, callback?: any) {
@@ -158,10 +167,12 @@ export class ServerInstance {
     async create(config: EngineConfig, callback?: any) {
         let error: string | null = null
         let result: string | null = null
-
         try {
-            this._config = config
             await checkConfig(config)
+            if(config.debugTimeout) {
+                this._debugTimeout = config.debugTimeout
+            }
+            this._config = config
             this._app = this.createEngine()
             result = 'engine created'
         } catch(err) {
@@ -182,6 +193,53 @@ export class ServerInstance {
                 }
             })
         }
+    }
+
+    private proceedDebuggedResponse(id: string, responseName?: string) {
+        if (this.debuggedResponses[id]) {
+            let { res, response, responses } = this.debuggedResponses[id]
+            if (responseName) {
+                response = responses[responseName]
+            }
+            delete this.debuggedResponses[id]
+            this.emit('debugStatus', {
+                proceeding: true,
+                id: id,
+                responses: Object.keys(this.debuggedResponses)
+            })
+            if (Object.prototype.toString.call(response) === '[object Object]' || Object.prototype.toString.call(response) === '[object Array]') {
+                res.json(response)
+            } else if (Object.prototype.toString.call(response) === '[object String]' || Object.prototype.toString.call(response) === '[object Number]') {
+                res.send(response.toString())
+            } else {
+                console.log('could not determine type of response! is it JSON, is it a string, a number..?')
+            }
+        } else {
+            this.emit('debugStatus', {
+                lateResponse: true,
+                id: id,
+                responses: Object.keys(this.debuggedResponses)
+            })
+        }
+    }
+
+    private clearDebuggedResponse(responseId: string) {
+        setTimeout(()=> {
+            if (this.debuggedResponses[responseId]) {
+                this.proceedDebuggedResponse(responseId)
+                this.emit('debugStatus', {
+                    timeout: true,
+                    id: responseId,
+                    responses: Object.keys(this.debuggedResponses)
+                })
+            } else {
+                this.emit('debugStatus', {
+                    alreadyResponded: true,
+                    id: responseId,
+                    responses: Object.keys(this.debuggedResponses)
+                })
+            }
+        }, this._debugTimeout)
     }
 
     private createEngine() {
@@ -218,13 +276,32 @@ export class ServerInstance {
                 }
             }
 
-            if (Object.prototype.toString.call(currentResponse) === '[object Object]' || Object.prototype.toString.call(currentResponse) === '[object Array]') {
-                res.json(currentResponse)
-            } else if (Object.prototype.toString.call(currentResponse) === '[object String]' || Object.prototype.toString.call(currentResponse) === '[object Number]') {
-                res.send(currentResponse.toString())
+            if (responseFound.debug) {
+                let newResponseId = uuidv4()
+                this.debuggedResponses[newResponseId] = {
+                    res: res,
+                    response: currentResponse,
+                    responses: responseFound.responses
+                }
+                this.emit('debug', {
+                    debugStarted: true,
+                    id: newResponseId,
+                    responses: Object.keys(this.debuggedResponses).length
+                })
+                    
+                this.clearDebuggedResponse(newResponseId)
             } else {
-                console.log('could not determine type of response! is it JSON, is it a string, a number..?')
+
+                if (Object.prototype.toString.call(currentResponse) === '[object Object]' || Object.prototype.toString.call(currentResponse) === '[object Array]') {
+                    res.json(currentResponse)
+                } else if (Object.prototype.toString.call(currentResponse) === '[object String]' || Object.prototype.toString.call(currentResponse) === '[object Number]') {
+                    res.send(currentResponse.toString())
+                } else {
+                    console.log('could not determine type of response! is it JSON, is it a string, a number..?')
+                }
+
             }
+
         })
         return newApp 
     }
