@@ -1,9 +1,6 @@
 import express from 'express'
-import { EngineRoute } from './classes/EngineRoute'
-import { EngineConfig, checkConfig, checkConfigSync } from './classes/EngineConfig'
-
-export { checkRoute, checkRouteSync } from './classes/EngineRoute'
-export { checkConfig, checkConfigSync } from './classes/EngineConfig'
+import { EngineRoute, checkRoute } from './classes/EngineRoute'
+import { EngineConfig, checkConfig } from './classes/EngineConfig'
 
 export class ServerInstance {
     _app: express.Application
@@ -13,6 +10,48 @@ export class ServerInstance {
 
     constructor () {
         this._app = express()
+    }
+
+    async checkConfig(config: any, callback?: any) {
+        if (callback) {
+            try {
+                let check = await checkConfig(config)
+                callback(check, null)
+            } catch(err) {
+                callback(null, err)
+            }
+        } else {
+            return new Promise((resolve, reject) => {
+                checkConfig(config)
+                .then( res => {
+                    resolve(res)
+                })
+                .catch( err => {
+                    reject(err)
+                })
+            })
+        }
+    }
+
+    async checkRoute(route: any, callback?: any) {
+        if (callback) {
+            try {
+                let check = await checkRoute(route)
+                callback(check, null)
+            } catch(err) {
+                callback(null, err)
+            }
+        } else {
+            return new Promise((resolve, reject) => {
+                checkRoute(route)
+                .then( res => {
+                    resolve(res)
+                })
+                .catch( err => {
+                    reject(err)
+                })
+            })
+        }
     }
 
     start(callback?: any) {
@@ -29,7 +68,7 @@ export class ServerInstance {
                 })
             } else {
                 this.running = false
-                callback(null, 'create it first..')
+                callback(null, 'create an engine first!')
             }
         } else {
             return new Promise((resolve, reject) => {
@@ -45,20 +84,9 @@ export class ServerInstance {
                     })
                 } else {
                     this.running = false
-                    reject('create it first..')
+                    reject('create an engine first!')
                 }
             })
-        }
-    }
-
-    async startSync() {
-        try {
-            console.log('start sync')
-            await this.start()
-            console.log('sync started')
-            return true
-        } catch (err) {
-            return false
         }
     }
 
@@ -94,7 +122,7 @@ export class ServerInstance {
         let routeFound: any
 
         if (!this._config) {
-            error = `no engine created!`
+            error = `create an engine first!`
         } else if (this.running !== true) {
             error = `engine not running!`
         } else {
@@ -125,20 +153,6 @@ export class ServerInstance {
                 }
             })
         }
-    }
-
-    createSync(config: EngineConfig): { result: string | null, error: string | null } {
-        let result: any = null
-        let error: any = null
-        let configCheck: { result: string | null, error: string | null } = checkConfigSync(config)
-        if (configCheck.error) {
-            error = configCheck.error
-        } else {
-            this._config = config
-            this._app = this.createEngine()
-            result = 'synchronous creation succeeded!'
-        }
-        return { result, error }
     }
 
     async create(config: EngineConfig, callback?: any) {
