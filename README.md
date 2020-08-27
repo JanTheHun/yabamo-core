@@ -3,6 +3,8 @@
 Core library for **Y**et **A**nother **Ba**ckend **Mo**ckup application.
 If you need a simple CLI tool to spin up a fake backend in a minute, check out [@jbp/yabamo-cli](https://www.npmjs.com/package/@jbp/yabamo-cli)!
 
+Also on [github](https://github.com/JanTheHun/yabamo-core).
+
 ## Installation
 
 ```npm i @jbp/yabamo-core```
@@ -114,15 +116,14 @@ main()
 
 # Debug mode
 
-If a route has a ```debug:true``` property, the engine pauses when a request arrives. This gives you the opportunity to decide which response to send on-the-fly. The engine emits a ```debug``` event along with an ```id``` property which you can set a listener on with ```.on('debug', ...)```. You can use your engine's ```.emit()``` method to response with a ```go``` event along with the appropriate ```id``` and optionally with the name of a response. If you ommit the response name the engine will use the saved response it would use otherwise but here you have the opportunity to decide which response to send.
+If a route has a ```debug:true``` property, the engine pauses when a request arrives. This gives you the opportunity to decide which response to send on-the-fly. The engine emits a ```debug``` event along with an ```id``` property which you can set a listener on with ```.on('debug', ...)```. You can use your engine's ```.emit()``` method to responde with a ```go``` event along with the appropriate ```id``` and optionally with the name of a response. If you ommit the response name the engine will use the saved response it would use otherwise but here you have the opportunity to decide which response to send.
 
 There is a timeout for the delayed responses, you can set it in the config with ```debugTimeout``` (in milliseconds) or it will default to 30 seconds.
 
-## Basic example
+## Basic debug mode example
 
 ```
 {
-    engineName: "test_engine",
     port: 3000,
     debugTimeout: 10000,
     routes: [
@@ -137,11 +138,11 @@ There is a timeout for the delayed responses, you can set it in the config with 
     ]
 }
 ```
-This configuration sets the timeout to 10 seconds and creates two responses, ```default``` and ```other```.
+This configuration sets the timeout to 10 seconds, sets ```debug: true``` on the only path and creates two responses, ```default``` and ```other```.
 If you set up your engine the following way:
 ```
-main()
-
+import { ServerInstance } from ('@jbp/yabamo-core')
+const server: ServerInstance = new ServerInstance()
 async function main() {
     try {
         await server.create(config)
@@ -153,13 +154,14 @@ async function main() {
             }, 1000)
         })
     } catch (err) {
-        console.log('err:', err)
+        console.log('error:', err)
     }
 }
+main()
 ```
 
 
- If you make a ```GET``` request to ```http://localhost:3000```, the engine will emit a ```debug``` event which in turn will trigger a ```go``` event emitted 1 seconds later with the id of the delayed response. With the config shown above this should result in a one second delayed ```yo``` response. But if you send the ```go``` event like this:
+ and make a ```GET``` request to ```http://localhost:3000```, the engine will emit a ```debug``` event which in turn will trigger a ```go``` event being emitted 1 second later with the ```id``` of the delayed response. With the config shown above this should result in a one second delayed ```yo``` response. But if you send the ```go``` event like this:
 
 ```server.emit('go', data.id, 'other')```
 
@@ -181,7 +183,7 @@ server.on('debug', (data) => {
     console.log(data)
 })
 ```
-when beeing called, should print this:
+when the API endpoint is being called, should print this:
 ```
 {
   id: ...,
