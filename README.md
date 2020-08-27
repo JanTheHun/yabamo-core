@@ -146,8 +146,6 @@ async function main() {
     try {
         await server.create(config)
         await server.start()
-
-        addListener()
         server.on('debug', (data: any) => {
             // setTimeout merely for demonstrative purposes
             setTimeout(() => {
