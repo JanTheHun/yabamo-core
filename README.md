@@ -146,7 +146,7 @@ async function main() {
     try {
         await server.create(config)
         await server.start()
-        server.on('debug', (data: any) => {
+        server.on('debug', (data) => {
             // setTimeout merely for demonstrative purposes
             setTimeout(() => {
                 server.emit('go', data.id)
@@ -164,3 +164,27 @@ async function main() {
 ```server.emit('go', data.id, 'other')```
 
 then you should get a slightly different result: ```yo!!!```
+
+### ```debug``` event
+
+The payload of ```debug``` event is the following:
+```
+{
+    id: '...',
+    responses: [...]
+}
+```
+where ```id``` is a unique id for the debugged request and ```responses``` is an array with the possible responses. Given the basic configuration above, the following:
+
+```
+server.on('debug', (data) => {
+    console.log(data)
+})
+```
+when beeing called, should print this:
+```
+{
+  id: ...,
+  responses: { default: 'yo', other: 'yo!!!' }
+}
+```
