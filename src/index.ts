@@ -126,11 +126,34 @@ export class ServerInstance extends EventEmitter {
         }
     }
 
+    toggleDebugMode(method: string, path: string) {
+        let error: string | null = null
+        let result: string | null = null
+        let routeFound: EngineRoute | undefined
+        if (!this._config) {
+            error = `create an engine first!`
+        } else if (this.running !== true) {
+            error = `engine not running!`
+        } else {
+            let engineRoutes: EngineRoute[] = this._config.routes
+            routeFound = engineRoutes.find( r => { return ((!r.method && method === 'GET') || (r.method === method)) && r.path === path })
+            if (!routeFound) {
+                error = `no "${method} ${path}" route!`
+            } else {
+                routeFound.debug = !routeFound.debug   
+                this.emit('debugStatus', {
+                    method: method,
+                    path: path,
+                    debugMode: routeFound.debug
+                })          
+            }
+        }
+    }
+
     changeResponse(method: string, path: string, responseName: string, callback?: any) {
         let error: string | null = null
         let result: string | null = null
         let routeFound: any
-
         if (!this._config) {
             error = `create an engine first!`
         } else if (this.running !== true) {
@@ -147,7 +170,6 @@ export class ServerInstance extends EventEmitter {
                 result = `changed response on "${method} ${path}" to "${responseName}"`
             }
         }
-
         if (callback) {
             if (error) {
                 callback(null, error)
