@@ -12,9 +12,6 @@ export function checkConfig(config: any): Promise<string> {
         if (!config) {
             reject('no config')
         }
-        // if (!config.engineName) {
-        //     reject('no engineName')
-        // }
         if (!config.port) {
             reject('no port number')
         }
@@ -26,6 +23,9 @@ export function checkConfig(config: any): Promise<string> {
         }
         if (Object.prototype.toString.call(config.routes) !== '[object Array]') {
             reject('routes must be Array')
+        }
+        if (config.hasOwnProperty('debugTimeout') && isNaN(config.debugTimeout)) {
+            reject('debugTimeout must be a number!')
         }
         config.routes.forEach((r: EngineRoute) => {
             checkRoute(r)

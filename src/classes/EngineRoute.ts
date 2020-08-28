@@ -52,7 +52,13 @@ export function checkRoute(rawRoute: any) {
             }
         } else {
             reject(`no "responses" on Route: ${rawRoute}`)
-        } 
+        }
+        if (rawRoute.hasOwnProperty("debug")) {
+            if (Object.prototype.toString.call(rawRoute.debug) !== '[object Boolean]') {
+                reject(`"debug"  is not boolean on Route: ${rawRoute}`)
+            }
+        }
+        
         resolve('route checks out')   
     })   
 }
