@@ -3,6 +3,7 @@ import { EventEmitter } from 'events'
 import { v4 as uuidv4 } from 'uuid'
 import { EngineRoute, checkRoute } from './classes/EngineRoute'
 import { EngineConfig, checkConfig } from './classes/EngineConfig'
+import { rejects } from 'assert'
 
 export class ServerInstance extends EventEmitter {
     _app: express.Application
@@ -21,6 +22,8 @@ export class ServerInstance extends EventEmitter {
             this.proceedDebuggedResponse(id, responseName)
         })
     }
+
+    //  Public API
 
     async checkConfig(config: any, callback?: any) {
         if (callback) {
@@ -63,6 +66,87 @@ export class ServerInstance extends EventEmitter {
             })
         }
     }
+
+    async create(config: EngineConfig, callback?: any) {
+        let error: string | null = null
+        let result: string | null = null
+        try {
+            await checkConfig(config)
+            if(config.debugTimeout) {
+                this._debugTimeout = config.debugTimeout
+            }
+            this._config = config
+            this._app = this.createEngine()
+            result = 'engine created'
+        } catch(err) {
+            error = err
+        }
+        if (callback) {
+            if (error) {
+                callback(null, error)
+            } else {
+                callback(result, null)
+            }
+        } else {
+            return new Promise((resolve, reject) => {
+                if (error) {
+                    reject(error)
+                } else {
+                    resolve(result)
+                }
+            })
+        }
+    }
+
+    getConfig(callback?: any) {
+        if (callback) {
+            callback(this._config)
+            
+        } else {
+            return new Promise((resolve, reject) => {
+                resolve(this._config)
+            })
+        }
+
+    }
+
+
+    async changeConfig(config: any, callback?: any) {
+        let error: string | null = null
+        let result: any = null
+        let wasRunning = this.running
+        try {
+            if (this.running === true) {
+                await this.stop()
+                this.running = false
+            }
+            await this.create(config)
+            result = 'config changed'
+            if (wasRunning) {
+                await this.start()
+                result += ', restarted'
+            }
+        } catch (err) {
+            error = `error changing config:${err}`
+        }
+        if (callback) {
+            if (error) {
+                callback(null, error)
+            } else {    
+                callback(result, null)
+            }
+        } else {
+            return new Promise((resolve, reject) => {
+                if (error) {
+                    reject(error)
+                } else {
+                    resolve(result)
+                }
+            })
+        }
+
+    }
+    
 
     start(callback?: any) {
         if (callback) {
@@ -126,9 +210,9 @@ export class ServerInstance extends EventEmitter {
         }
     }
 
-    toggleDebugMode(method: string, path: string) {
+    toggleDebugMode(method: string, path: string, debug?: any, callback?: any) {
         let error: string | null = null
-        let result: string | null = null
+        let result: any = null
         let routeFound: EngineRoute | undefined
         if (!this._config) {
             error = `create an engine first!`
@@ -140,13 +224,35 @@ export class ServerInstance extends EventEmitter {
             if (!routeFound) {
                 error = `no "${method} ${path}" route!`
             } else {
-                routeFound.debug = !routeFound.debug   
-                this.emit('debugStatus', {
+                let nextDebugState: boolean
+                if (Object.prototype.toString.call(debug) === '[object Boolean]') {
+                    nextDebugState = debug
+                } else {
+                    nextDebugState = !routeFound.debug   
+                }
+                routeFound.debug = nextDebugState
+                result = {
                     method: method,
                     path: path,
                     debugMode: routeFound.debug
-                })          
+                }
+                this.emit('debugStatus', result)      
             }
+        }
+        if (callback) {
+            if (error) {
+                callback(null, error)
+            } else {    
+                callback(result, null)
+            }
+        } else {
+            return new Promise((resolve, reject) => {
+                if (error) {
+                    reject(error)
+                } else {
+                    resolve(result)
+                }
+            })
         }
     }
 
@@ -187,37 +293,7 @@ export class ServerInstance extends EventEmitter {
         }
     }
 
-    async create(config: EngineConfig, callback?: any) {
-        let error: string | null = null
-        let result: string | null = null
-        try {
-            await checkConfig(config)
-            if(config.debugTimeout) {
-                this._debugTimeout = config.debugTimeout
-            }
-            this._config = config
-            this._app = this.createEngine()
-            result = 'engine created'
-        } catch(err) {
-            error = err
-        }
-        if (callback) {
-            if (error) {
-                callback(null, error)
-            } else {
-                callback(result, null)
-            }
-        } else {
-            return new Promise((resolve, reject) => {
-                if (error) {
-                    reject(error)
-                } else {
-                    resolve(result)
-                }
-            })
-        }
-    }
-
+    //  Private methods
 
     private createEngine() {
         let newApp = express()
