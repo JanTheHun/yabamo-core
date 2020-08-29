@@ -3,7 +3,6 @@ import { EventEmitter } from 'events'
 import { v4 as uuidv4 } from 'uuid'
 import { EngineRoute, checkRoute } from './classes/EngineRoute'
 import { EngineConfig, checkConfig } from './classes/EngineConfig'
-import { rejects } from 'assert'
 
 export class ServerInstance extends EventEmitter {
     _app: express.Application

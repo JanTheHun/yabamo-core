@@ -84,8 +84,9 @@ try {
 ```.changeResponse(method, path, responseName)``` - changes current response on the route described by ```method``` and ```path``` to ```responseName```
 
 ```.toggleDebugMode(method, path, debugMode)``` - sets debug mode on the route described by ```method``` and ```path``` to ```debugMode``` if provided, toggles it if omitted. Note that if you are using it with a callback you __must__ provide at least a ```null``` for ```debugMode``` like this:
+
 ```
-server.toggleDebugMode('GET', '/', null, (err, res) => {...})```
+server.toggleDebugMode('GET', '/', null, (err, res) => {...})
 ```
 
 ```.checkRoute(route)``` - checks a single route, returns 'route checks out' if the route is valid
@@ -94,7 +95,13 @@ server.toggleDebugMode('GET', '/', null, (err, res) => {...})```
 
 # Debug mode
 
-If a route has a ```debug:true``` property, the engine pauses when a request arrives. This gives you the opportunity to decide which response to send on-the-fly. The engine emits a ```debug``` event along with an ```id``` property which you can set a listener on with ```.on('debug', ...)```. You can use your engine's ```.emit()``` method to responde with a ```go``` event along with the appropriate ```id``` and optionally with the name of a response. If you ommit the response name the engine will use the saved response it would use otherwise but here you have the opportunity to decide which response to send.
+If a route has a ```debug:true``` property, when a request arrives the engine pauses and emits a ```debug``` event (along with a unique ID of the debugging event), giving you control over which response to send on-the-fly. You can set a listener with using
+```
+server.on('debug', (data)=> {
+    console.log(data.id)
+})
+```
+and then can use ```server.emit()``` method to responde with a ```go``` event along with the appropriate ```id``` and optionally with the name of a response. If you ommit the response name the engine will use the saved response it would use otherwise but here you have the opportunity to decide which response to send.
 
 There is a timeout for the delayed responses, you can set it in the config with ```debugTimeout``` (in milliseconds) or it will default to 30 seconds.
 
@@ -141,9 +148,9 @@ main()
 
 
  and make a ```GET``` request to ```http://localhost:3000```, the engine will emit a ```debug``` event which in turn will trigger a ```go``` event being emitted 1 second later with the ```id``` of the delayed response. With the config shown above this should result in a one second delayed ```yo``` response. But if you send the ```go``` event like this:
-
-```server.emit('go', data.id, 'other')```
-
+```
+server.emit('go', data.id, 'other')
+```
 then you should get a slightly different result: ```yo!!!```
 
 ### ```debug``` event
