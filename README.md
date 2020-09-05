@@ -7,7 +7,9 @@ Also on [github](https://github.com/JanTheHun/yabamo-core).
 
 ## Installation
 
-```npm i @jbp/yabamo-core```
+```
+npm install @jbp/yabamo-core
+```
 
 ## Usage
 
@@ -69,6 +71,28 @@ try {
 }
 ```
 
+## Configuration
+
+```engineName``` - optional
+
+```routes``` - required, ```Array``` of routes your API will respond to
+
+```port``` - required, the port on which you want your API to run
+
+```debugTimeout``` - optional, sets the timeout for ```debug``` events in milliseconds, defaults to 30 seconds
+
+```fallback``` - optional
+
+### Route
+```path``` - required
+
+```method``` - optional, defaults to ```GET```
+
+```debug``` - optional boolean flag, when ```true``` the API will pause and emit a ```debug``` event every time the route has been requested
+
+```responses``` - required, a ```key=>value``` map describing possible responses. A response can be a string, a number, an array or an object. Arrays and objects will be JSON stringified and sent as JSON, strings and numbers will be sent as text.
+
+```fallback``` - optional, the response to use if the request didn't match any of the routes.
 
 ## Methods
 ```.create(config)``` - creates API engine from the given configuration
@@ -95,7 +119,7 @@ server.toggleDebugMode('GET', '/', null, (err, res) => {...})
 
 # Debug mode
 
-If a route has a ```debug:true``` property, when a request arrives the engine pauses and emits a ```debug``` event (along with a unique ID of the debugging event), giving you control over which response to send on-the-fly. You can set a listener with using
+If a route has a ```debug:true``` property, when a request arrives the engine pauses and emits a ```debug``` event (along with a unique ID of the debugging event), giving you control over which response to send on-the-fly. You can set up a listener with using
 ```
 server.on('debug', (data)=> {
     console.log(data.id)

@@ -75,7 +75,7 @@ export class ServerInstance extends EventEmitter {
                 this._debugTimeout = config.debugTimeout
             }
             this._config = config
-            this._app = this.createEngine()
+            this.createEngine()
             result = 'engine created'
         } catch(err) {
             error = err
@@ -295,19 +295,14 @@ export class ServerInstance extends EventEmitter {
     //  Private methods
 
     private createEngine() {
-        let newApp = express()
         let config = this._config
                 /*      setting keep-alive to false     */
-        newApp.use(function(req: any, res: any, next: any) {
+        this._app.use(function(req: any, res: any, next: any) {
             res.setHeader('Connection', 'close')
             next()
         })
-
-        newApp.get('/favicon.ico', (req: any, res: any) => {
-            res.sendFile(__dirname.concat('/favicon.ico'))
-        })
                 /*      handling requests     */
-        newApp.use('/', (req: any,res: any) => {
+        this._app.use('/', (req: any,res: any) => {
 
             let reqPath = req.path
             let reqMethod = req.method
@@ -344,7 +339,6 @@ export class ServerInstance extends EventEmitter {
                 this.sendResponse(res, selectedResponse)
             }
         })
-        return newApp 
     }
 
     private sendResponse(res: any, response: any) {
