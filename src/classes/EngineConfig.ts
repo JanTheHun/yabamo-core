@@ -8,7 +8,7 @@ export interface EngineConfig {
 }
 
 export function checkConfig(config: any): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         if (!config) {
             reject('no config')
         }
@@ -23,17 +23,38 @@ export function checkConfig(config: any): Promise<string> {
         }
         if (Object.prototype.toString.call(config.routes) !== '[object Array]') {
             reject('routes must be Array')
+        } else if (config.routes.length === 0) {
+            reject('no routes')
+        } else {
+            try {
+                await checkRoutes(config.routes)
+            } catch (err) {
+                reject(err)
+            }
         }
         if (config.hasOwnProperty('debugTimeout') && isNaN(config.debugTimeout)) {
             reject('debugTimeout must be a number!')
         }
-        config.routes.forEach((r: EngineRoute) => {
-            checkRoute(r)
-            .then(_ => {})
-            .catch(err => {
-                reject(err)
-            })
-        })
         resolve('config looks good')
+    })
+}
+
+async function checkRoutes(routes: any[]) {
+    let allGood = true
+    let error = ''
+    try {
+        for (let route of routes) {
+            await checkRoute(route)
+        }
+    } catch (err) {
+        allGood = false
+        error = err
+    }
+    return new Promise((resolve, reject) => {
+        if (allGood) {
+            resolve(true)
+        } else {
+            reject(error)
+        }
     })
 }

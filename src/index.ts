@@ -2,7 +2,9 @@ import express from 'express'
 import { EventEmitter } from 'events'
 import { v4 as uuidv4 } from 'uuid'
 import { EngineRoute, checkRoute } from './classes/EngineRoute'
-import { EngineConfig, checkConfig } from './classes/EngineConfig'
+import { EngineConfig, checkConfig as chkCnfg } from './classes/EngineConfig'
+
+export { checkConfig } from './classes/EngineConfig'
 
 export class ServerInstance extends EventEmitter {
     _app: express.Application
@@ -27,14 +29,14 @@ export class ServerInstance extends EventEmitter {
     async checkConfig(config: any, callback?: any) {
         if (callback) {
             try {
-                let check = await checkConfig(config)
+                let check = await chkCnfg(config)
                 callback(check, null)
             } catch(err) {
                 callback(null, err)
             }
         } else {
             return new Promise((resolve, reject) => {
-                checkConfig(config)
+                chkCnfg(config)
                 .then( res => {
                     resolve(res)
                 })
@@ -70,7 +72,7 @@ export class ServerInstance extends EventEmitter {
         let error: string | null = null
         let result: string | null = null
         try {
-            await checkConfig(config)
+            await chkCnfg(config)
             if(config.debugTimeout) {
                 this._debugTimeout = config.debugTimeout
             }
@@ -109,7 +111,6 @@ export class ServerInstance extends EventEmitter {
 
     }
 
-
     async changeConfig(config: any, callback?: any) {
         let error: string | null = null
         let result: any = null
@@ -145,7 +146,6 @@ export class ServerInstance extends EventEmitter {
         }
 
     }
-    
 
     start(callback?: any) {
         if (callback) {
@@ -263,7 +263,10 @@ export class ServerInstance extends EventEmitter {
             error = `create an engine first!`
         } else if (this.running !== true) {
             error = `engine not running!`
-        } else {
+        } else if (!method || !path || !responseName) {
+            error = 'something is missing..'
+        }
+        else {
             let engineRoutes: EngineRoute[] = this._config.routes
             routeFound = engineRoutes.find( r => { return ((!r.method && method === 'GET') || (r.method === method)) && r.path === path })
             if (!routeFound) {
@@ -321,23 +324,23 @@ export class ServerInstance extends EventEmitter {
                 } else {
                     selectedResponse = Object.entries(responseFound.responses)[0][1]
                 }
+                if (responseFound.debug) {
+                    let newResponseId = uuidv4()
+                    this.debuggedResponses[newResponseId] = {
+                        res: res,
+                        response: selectedResponse,
+                        responses: responseFound.responses
+                    }
+                    this.emit('debug', {
+                        id: newResponseId,
+                        responses: responseFound.responses
+                    })  
+                    this.clearDebuggedResponse(newResponseId)
+                } else {
+                    this.sendResponse(res, selectedResponse)
+                }
             }
 
-            if (responseFound.debug) {
-                let newResponseId = uuidv4()
-                this.debuggedResponses[newResponseId] = {
-                    res: res,
-                    response: selectedResponse,
-                    responses: responseFound.responses
-                }
-                this.emit('debug', {
-                    id: newResponseId,
-                    responses: responseFound.responses
-                })  
-                this.clearDebuggedResponse(newResponseId)
-            } else {
-                this.sendResponse(res, selectedResponse)
-            }
         })
     }
 
